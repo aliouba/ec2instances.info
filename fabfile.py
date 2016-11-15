@@ -2,7 +2,6 @@
 #   AWS_ACCESS_KEY_ID
 #   AWS_SECRET_ACCESS_KEY
 # as explained in: http://boto.s3.amazonaws.com/s3_tut.html
-
 import SimpleHTTPServer
 import SocketServer
 import os
@@ -26,8 +25,6 @@ BUCKET_CALLING_FORMAT = OrdinaryCallingFormat()
 
 abspath = lambda filename: os.path.join(os.path.abspath(os.path.dirname(__file__)),
                                         filename)
-
-
 @task
 def build():
     """Scrape AWS sources for data and build the site"""
@@ -59,11 +56,11 @@ def scrape_rds():
 
 
 @task
-def serve(ipaddr='127.0.0.1', port=0):
+def serve(ipaddr='0.0.0.0', port=0):
     """Serve site contents locally for development"""
     port = int(port)
     os.chdir("www/")
-    httpd = SocketServer.TCPServer((ipaddr, port), SimpleHTTPServer.SimpleHTTPRequestHandler)
+    httpd = SocketServer.TCPServer((ipaddr, 8000),SimpleHTTPServer.SimpleHTTPRequestHandler)
     print "Serving on http://{}:{}".format(httpd.socket.getsockname()[0], httpd.socket.getsockname()[1])
     httpd.serve_forever()
 
