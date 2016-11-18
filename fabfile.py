@@ -16,7 +16,6 @@ from fabric.contrib.console import confirm
 from rds import scrape as rds_scrape
 from render import render
 from scrape import scrape
-
 BUCKET_NAME = 'www.ec2instances.info'
 
 # Work around https://github.com/boto/boto/issues/2836 by explicitly setting
@@ -25,6 +24,9 @@ BUCKET_CALLING_FORMAT = OrdinaryCallingFormat()
 
 abspath = lambda filename: os.path.join(os.path.abspath(os.path.dirname(__file__)),
                                         filename)
+class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+  allow_reuse_address = True
+
 @task
 def build():
     """Scrape AWS sources for data and build the site"""
@@ -56,11 +58,12 @@ def scrape_rds():
 
 
 @task
-def serve(ipaddr='0.0.0.0', port=0):
+def serve(ipaddr='0.0.0.0', port=8000):
     """Serve site contents locally for development"""
     port = int(port)
     os.chdir("www/")
-    httpd = SocketServer.TCPServer((ipaddr, 8000),SimpleHTTPServer.SimpleHTTPRequestHandler)
+    SocketServer.TCPServer.allow_reuse_address = True
+    httpd = ThreadedTCPServer((ipaddr, port), SimpleHTTPServer.SimpleHTTPRequestHandler)
     print "Serving on http://{}:{}".format(httpd.socket.getsockname()[0], httpd.socket.getsockname()[1])
     httpd.serve_forever()
 
